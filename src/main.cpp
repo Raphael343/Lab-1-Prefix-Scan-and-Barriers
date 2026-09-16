@@ -28,16 +28,18 @@ int main(int argc, char **argv)
     // Setup args & read input data
     prefix_sum_args_t *ps_args = alloc_args(opts.n_threads);
     int n_vals;
-    int *input_vals, *output_vals;
-    read_file(&opts, &n_vals, &input_vals, &output_vals);
+    int n_padded_vals;
+    int *input_vals, *output_vals, *temp_vals;
+    pthread_barrier_t* barrier;
+    read_file(&opts, &n_vals, &n_padded_vals, &input_vals, &output_vals, &temp_vals, &barrier);
 
     //"op" is the operator you have to use, but you can use "add" to test
     int (*scan_operator)(int, int, int);
     scan_operator = op;
     //scan_operator = add;
 
-    fill_args(ps_args, opts.n_threads, n_vals, input_vals, output_vals,
-        opts.spin, scan_operator, opts.n_loops);
+    fill_args(ps_args, opts.n_threads, n_vals, n_padded_vals, input_vals, output_vals,
+        temp_vals, opts.spin, scan_operator, opts.n_loops, barrier);
 
     // Start timer
     auto start = std::chrono::high_resolution_clock::now();
@@ -51,10 +53,12 @@ int main(int argc, char **argv)
         }
     }
     else {
-        //start_threads(threads, opts.n_threads, ps_args, <your function>);
+        pthread_barrier_init(ps_args->barrier, NULL, opts.n_threads);
+        start_threads(threads, opts.n_threads, ps_args, compute_prefix_sum);
 
         // Wait for threads to finish
         join_threads(threads, opts.n_threads);
+        pthread_barrier_destroy(ps_args->barrier);
     }
 
     //End timer and print out elapsed
@@ -67,5 +71,7 @@ int main(int argc, char **argv)
 
     // Free other buffers
     free(threads);
+    free(ps_args->barrier);
+    free(ps_args->temp_vals);
     free(ps_args);
 }

@@ -5,11 +5,15 @@
 #include <prefix_sum.h>
 #include <iostream>
 #include <fstream>
+#include "pthread_barrier.h"
 
 void read_file(struct options_t* args,
                int*              n_vals,
+               int*              n_padded_vals,
                int**             input_vals,
-               int**             output_vals);
+               int**             output_vals,
+			   int**             temp_vals,
+               pthread_barrier_t** barrier);
 
 void write_file(struct options_t*         args,
                 struct prefix_sum_args_t* opts);

@@ -1,5 +1,6 @@
 #include "threads.h"
 #include "helpers.h"
+#include "pthread_barrier.h"
 
 pthread_t *alloc_threads(int n_threads)
 {
