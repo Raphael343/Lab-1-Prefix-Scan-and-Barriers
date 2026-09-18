@@ -22,9 +22,20 @@ void fill_args(prefix_sum_args_t *args,
                bool spin,
                int (*op)(int, int, int),
                int n_loops,
-               pthread_barrier_t* barrier) {
+               pthread_barrier_t** barrier,
+               spin_barrier** custom_barrier) {
+
+    *barrier = nullptr;
+    *custom_barrier = nullptr;
+
+    if (spin) {
+        *custom_barrier = new spin_barrier(n_threads);
+    } else {
+        *barrier = (pthread_barrier_t*) malloc(sizeof(pthread_barrier_t));
+    }
+
     for (int i = 0; i < n_threads; ++i) {
         args[i] = {inputs, outputs, temp_vals, spin, n_vals,
-                   n_padded_vals, n_threads, i, op, n_loops, barrier};
+                   n_padded_vals, n_threads, i, op, n_loops, *barrier, *custom_barrier};
     }
 }

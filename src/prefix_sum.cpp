@@ -21,14 +21,22 @@ void* compute_prefix_sum(void *a)
         }
 
         // Barrier
-        pthread_barrier_wait(args->barrier);
+        if (args->spin) {
+            args->custom_barrier->wait(args->t_id);
+        } else {
+            pthread_barrier_wait(args->barrier);
+        }
     }
 
     if (args->t_id == 0){
         args->temp_vals[args->n_padded_vals - 1] = 0;
     }
 
-    pthread_barrier_wait(args->barrier);
+    if (args->spin) {
+        args->custom_barrier->wait(args->t_id);
+    } else {
+        pthread_barrier_wait(args->barrier);
+    }
 
     // Downsweep
     while (group_size >= 2) {
@@ -48,7 +56,11 @@ void* compute_prefix_sum(void *a)
         
         group_size /= 2;
         // Barrier
-        pthread_barrier_wait(args->barrier);
+        if (args->spin) {
+            args->custom_barrier->wait(args->t_id);
+        } else {
+            pthread_barrier_wait(args->barrier);
+        }
     }
 
     // Inclusive add

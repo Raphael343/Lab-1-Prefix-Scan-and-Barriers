@@ -7,6 +7,7 @@
 #include "operators.h"
 #include "helpers.h"
 #include "prefix_sum.h"
+#include <spin_barrier.h>
 
 using namespace std;
 
@@ -31,7 +32,8 @@ int main(int argc, char **argv)
     int n_padded_vals;
     int *input_vals, *output_vals, *temp_vals;
     pthread_barrier_t* barrier;
-    read_file(&opts, &n_vals, &n_padded_vals, &input_vals, &output_vals, &temp_vals, &barrier);
+    spin_barrier* custom_barrier;
+    read_file(&opts, &n_vals, &n_padded_vals, &input_vals, &output_vals, &temp_vals);
 
     //"op" is the operator you have to use, but you can use "add" to test
     int (*scan_operator)(int, int, int);
@@ -39,7 +41,7 @@ int main(int argc, char **argv)
     //scan_operator = add;
 
     fill_args(ps_args, opts.n_threads, n_vals, n_padded_vals, input_vals, output_vals,
-        temp_vals, opts.spin, scan_operator, opts.n_loops, barrier);
+        temp_vals, opts.spin, scan_operator, opts.n_loops, &barrier, &custom_barrier);
 
     // Start timer
     auto start = std::chrono::high_resolution_clock::now();
@@ -53,12 +55,16 @@ int main(int argc, char **argv)
         }
     }
     else {
-        pthread_barrier_init(ps_args->barrier, NULL, opts.n_threads);
+        if (!opts.spin) {
+            pthread_barrier_init(ps_args->barrier, NULL, opts.n_threads);
+        }
         start_threads(threads, opts.n_threads, ps_args, compute_prefix_sum);
 
         // Wait for threads to finish
         join_threads(threads, opts.n_threads);
-        pthread_barrier_destroy(ps_args->barrier);
+        if (!opts.spin) {
+            pthread_barrier_destroy(ps_args->barrier);
+        }
     }
 
     //End timer and print out elapsed
@@ -71,7 +77,12 @@ int main(int argc, char **argv)
 
     // Free other buffers
     free(threads);
-    free(ps_args->barrier);
+    if (opts.spin) {
+    delete custom_barrier;
+    } else {
+        pthread_barrier_destroy(barrier);
+        free(barrier);
+    }
     free(ps_args->temp_vals);
     free(ps_args);
 }

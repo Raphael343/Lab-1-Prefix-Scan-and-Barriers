@@ -6,8 +6,7 @@ void read_file(struct options_t* args,
 			   int*              n_padded_vals,
                int**             input_vals,
                int**             output_vals,
-			   int**             temp_vals,
-			   pthread_barrier_t** barrier) {
+			   int**             temp_vals) {
 
   	// Open file
 	std::ifstream in;
@@ -18,9 +17,6 @@ void read_file(struct options_t* args,
 	// Alloc input and output arrays
 	*input_vals = (int*) malloc(*n_vals * sizeof(int));
 	*output_vals = (int*) malloc(*n_vals * sizeof(int));
-
-	// Allocate space for the pthread barrier
-	*barrier = (pthread_barrier_t*) malloc(sizeof(pthread_barrier_t));
 
 	int padded_size = 1;
 	while (padded_size < *n_vals){

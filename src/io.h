@@ -12,8 +12,7 @@ void read_file(struct options_t* args,
                int*              n_padded_vals,
                int**             input_vals,
                int**             output_vals,
-			   int**             temp_vals,
-               pthread_barrier_t** barrier);
+			   int**             temp_vals);
 
 void write_file(struct options_t*         args,
                 struct prefix_sum_args_t* opts);
