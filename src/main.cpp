@@ -62,8 +62,11 @@ int main(int argc, char **argv)
 
         // Wait for threads to finish
         join_threads(threads, opts.n_threads);
-        if (!opts.spin) {
-            pthread_barrier_destroy(ps_args->barrier);
+        if (opts.spin) {
+        delete custom_barrier;
+        } else {
+            pthread_barrier_destroy(barrier);
+            free(barrier);
         }
     }
 
@@ -77,12 +80,6 @@ int main(int argc, char **argv)
 
     // Free other buffers
     free(threads);
-    if (opts.spin) {
-    delete custom_barrier;
-    } else {
-        pthread_barrier_destroy(barrier);
-        free(barrier);
-    }
     free(ps_args->temp_vals);
     free(ps_args);
 }

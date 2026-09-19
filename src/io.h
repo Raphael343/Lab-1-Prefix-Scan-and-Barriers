@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include "pthread_barrier.h"
+#include <cstring>
 
 void read_file(struct options_t* args,
                int*              n_vals,
