@@ -1,5 +1,0 @@
----
-triple:          'arm64-apple-darwin'
-binary-path:     'bin/prefix_scan_debug'
-relocations:     []
-...
